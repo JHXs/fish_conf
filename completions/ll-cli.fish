@@ -1,92 +1,89 @@
+# ll-cli.fish - fish completion for ll-cli
 # SPDX-FileCopyrightText: 2023 - 2025 UnionTech Software Technology Co., Ltd.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-# ll-cli  fish completion
-
-# ----------- 工具函数 -----------
-function __ll_cli_container_list
+function __ll_cli_get_container_list
     ll-cli ps | tail -n +2 | awk '{print $1}'
 end
 
-function __ll_cli_installed_app_list
+function __ll_cli_get_installed_app_list
     ll-cli list --type=app | tail -n +2 | awk '{print $1}'
 end
 
-function __ll_cli_installed_list
+function __ll_cli_get_installed_list
     ll-cli list | tail -n +2 | awk '{print $1}'
 end
 
-function __ll_cli_app_list --argument search
-    ll-cli search $search | tail -n +2 | awk '{print $1}' | sort -u
+function __ll_cli_get_app_list --argument-names q
+    ll-cli search $q | tail -n +2 | awk '{print $1}' | sort | uniq
 end
 
-function __ll_cli_layer_list --argument dir
-    ls $dir*.layer 2>/dev/null
+function __ll_cli_get_layer_list --argument-names prefix
+    ls $prefix*.layer 2>/dev/null
 end
 
-function __ll_cli_repo_alias_list
+function __ll_cli_get_repo_alias_list
     ll-cli repo show | tail -n +3 | awk '{print $3}'
 end
 
-# ----------- 补全定义 -----------
-# 全局选项
+# Global options
 set -l common_opts -h --help --help-all
 set -l global_opts --version --json
-set -l subcmds run ps enter kill prune install uninstall upgrade list info content search repo
+set -l subcommands run ps enter kill prune install uninstall upgrade list info content search repo
 
-# 顶层（子命令 + 全局选项）
-complete -c ll-cli -n '__fish_use_subcommand' -a "$subcmds $global_opts"
+# Top-level completion
+complete -c ll-cli -n "not __fish_seen_subcommand_from $subcommands" -a "$common_opts $global_opts $subcommands"
 
-# 子命令级别的补全
+# ---- Subcommands ----
+
 # run
-complete -c ll-cli -n '__fish_seen_subcommand_from run' -s f -l file -d '指定 layer/uab 文件'
-complete -c ll-cli -n '__fish_seen_subcommand_from run' -l url -d '从 url 安装并运行'
-complete -c ll-cli -n '__fish_seen_subcommand_from run' -f -a '(__ll_cli_installed_app_list)'
+complete -c ll-cli -n "__fish_seen_subcommand_from run" -a "(__ll_cli_get_installed_app_list)" -d "Installed apps"
+complete -c ll-cli -n "__fish_seen_subcommand_from run" -l file -d "Run from file"
+complete -c ll-cli -n "__fish_seen_subcommand_from run" -l url -d "Run from URL"
+
+# ps (no extra options)
 
 # enter
-complete -c ll-cli -n '__fish_seen_subcommand_from enter' -l working-directory -d '进入容器的工作目录'
-complete -c ll-cli -n '__fish_seen_subcommand_from enter' -f -a '(__ll_cli_container_list)'
+complete -c ll-cli -n "__fish_seen_subcommand_from enter" -a "(__ll_cli_get_container_list)" -d "Running containers"
+complete -c ll-cli -n "__fish_seen_subcommand_from enter" -l working-directory -d "Set working directory"
 
 # kill
-complete -c ll-cli -n '__fish_seen_subcommand_from kill' -f -a '(__ll_cli_container_list)'
+complete -c ll-cli -n "__fish_seen_subcommand_from kill" -a "(__ll_cli_get_container_list)" -d "Running containers"
 
-# prune（无额外参数）
+# prune (no extra options)
 
 # install
-complete -c ll-cli -n '__fish_seen_subcommand_from install' -l module -d '指定模块'
-complete -c ll-cli -n '__fish_seen_subcommand_from install' -l force -d '强制安装'
-complete -c ll-cli -n '__fish_seen_subcommand_from install' -s y -d '自动确认'
-# 如果以 ./ 开头，只补全本地 .layer/.uab 文件
-complete -c ll-cli -n '__fish_seen_subcommand_from install; and string match -q "./*" (commandline -ct)' \
-         -f -r -a '(__fish_complete_suffix .layer)' -d '本地 layer 文件'
-complete -c ll-cli -n '__fish_seen_subcommand_from install; and string match -q "./*" (commandline -ct)' \
-         -f -r -a '(__fish_complete_suffix .uab)'  -d '本地 uab 文件'
-# 否则补全远端应用
-complete -c ll-cli -n '__fish_seen_subcommand_from install' -f -a '(__ll_cli_app_list (commandline -ct))'
+complete -c ll-cli -n "__fish_seen_subcommand_from install" -l module -d "Install module"
+complete -c ll-cli -n "__fish_seen_subcommand_from install" -l force -d "Force install"
+complete -c ll-cli -n "__fish_seen_subcommand_from install" -s y -d "Assume yes"
+# 本地文件（.layer/.uab）
+complete -c ll-cli -n "__fish_seen_subcommand_from install" -a "(ls ./*.layer ./*.uab ^/dev/null)" -d "Local layer/uab files"
+# 搜索应用
+complete -c ll-cli -n "__fish_seen_subcommand_from install" -a "(__ll_cli_get_app_list (commandline -ct))" -d "Available apps"
 
 # uninstall
-complete -c ll-cli -n '__fish_seen_subcommand_from uninstall' -f -a '(__ll_cli_installed_app_list)'
+complete -c ll-cli -n "__fish_seen_subcommand_from uninstall" -a "(__ll_cli_get_installed_app_list)" -d "Installed apps"
 
 # upgrade
-complete -c ll-cli -n '__fish_seen_subcommand_from upgrade' -f -a '(__ll_cli_installed_list)'
+complete -c ll-cli -n "__fish_seen_subcommand_from upgrade" -a "(__ll_cli_get_installed_list)" -d "Installed packages"
 
 # list
-complete -c ll-cli -n '__fish_seen_subcommand_from list' -l type -d '指定类型'
-complete -c ll-cli -n '__fish_seen_subcommand_from list' -l upgradable -d '只列出可升级项'
+complete -c ll-cli -n "__fish_seen_subcommand_from list" -l type -d "Filter by type"
+complete -c ll-cli -n "__fish_seen_subcommand_from list" -l upgradable -d "Show upgradable"
 
 # info
-complete -c ll-cli -n '__fish_seen_subcommand_from info' -f -a '(__ll_cli_installed_list)'
-complete -c ll-cli -n '__fish_seen_subcommand_from info' -f -a '(__ll_cli_layer_list (commandline -ct))'
+complete -c ll-cli -n "__fish_seen_subcommand_from info" -a "(__ll_cli_get_installed_list)" -d "Installed packages"
+complete -c ll-cli -n "__fish_seen_subcommand_from info" -a "(__ll_cli_get_layer_list (commandline -ct))" -d "Layer files"
 
 # content
-complete -c ll-cli -n '__fish_seen_subcommand_from content' -f -a '(__ll_cli_installed_app_list)'
+complete -c ll-cli -n "__fish_seen_subcommand_from content" -a "(__ll_cli_get_installed_app_list)" -d "Installed apps"
 
 # search
-complete -c ll-cli -n '__fish_seen_subcommand_from search' -l type -d '指定类型'
-complete -c ll-cli -n '__fish_seen_subcommand_from search' -l dev -d '搜索开发包'
-complete -c ll-cli -n '__fish_seen_subcommand_from search' -f -a '(__ll_cli_app_list (commandline -ct))'
+complete -c ll-cli -n "__fish_seen_subcommand_from search" -l type -d "Filter by type"
+complete -c ll-cli -n "__fish_seen_subcommand_from search" -l dev -d "Development packages"
+complete -c ll-cli -n "__fish_seen_subcommand_from search" -a "(__ll_cli_get_app_list (commandline -ct))" -d "Available apps"
 
-# repo 子命令
-complete -c ll-cli -n '__fish_seen_subcommand_from repo' -a 'add remove update set-default show'
-complete -c ll-cli -n '__fish_seen_subcommand_from repo; and __fish_seen_subcommand_from remove set-default' \
-         -f -a '(__ll_cli_repo_alias_list)'
+# repo
+complete -c ll-cli -n "__fish_seen_subcommand_from repo" -a "add remove update set-default show"
+complete -c ll-cli -n "__fish_seen_subcommand_from repo; and __fish_seen_subcommand_from remove" -a "(__ll_cli_get_repo_alias_list)" -d "Repo aliases"
+complete -c ll-cli -n "__fish_seen_subcommand_from repo; and __fish_seen_subcommand_from set-default" -a "(__ll_cli_get_repo_alias_list)" -d "Repo aliases"
