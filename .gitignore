@@ -1,2 +1,2 @@
-conf.d/99-local.fish
+conf.d/99_local.fish
 fish_variables
