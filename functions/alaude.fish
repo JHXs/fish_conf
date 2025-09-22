@@ -1,6 +1,6 @@
 # Claude code 使用AgentRouter
 
-function klaude
+function alaude
     # 检查必要的环境变量是否已设置
     if not set -q ANTHROPIC_BASE_URL_AgentRouter
         echo "错误: ANTHROPIC_BASE_URL_AgentRouter 未设置"
