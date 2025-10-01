@@ -19,3 +19,6 @@ else
 end
 # <<< conda initialize <<<
 
+# 设置 Bitwarden SSH Agent 的 socket 路径
+set -x SSH_AUTH_SOCK ~/.bitwarden-ssh-agent.sock
+
