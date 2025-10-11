@@ -16,6 +16,6 @@ function alaude
     set -gx ANTHROPIC_API_KEY $CC_API_KEY_AgentRouter
     # set -gx ANTHROPIC_AUTH_TOKEN $CC_AUTH_TOKEN_AgentRouter
     # set -gx ANTHROPIC_SMALL_FAST_MODEL $CC_SMALL_FAST_MODEL_AgentRouter
-    # set -gx ANTHROPIC_MODEL $CC_MODEL_AgentRouter
+    set -gx ANTHROPIC_MODEL $CC_MODEL_AgentRouter
     claude $argv
 end
