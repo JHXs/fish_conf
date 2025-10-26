@@ -2,3 +2,4 @@
 
 fish_add_path ~/.npm/npm-global/bin
 fish_add_path ~/.local/bin
+fish_add_path ~/apps/scripts

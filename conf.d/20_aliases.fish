@@ -9,5 +9,3 @@ alias daeno="sudo systemctl stop dae"
 
 # 兼容yay
 alias yay=paru
-alias aur-up='paru -Sua --aur --ignore proton-ge-custom-bin,visual-studio-code-bin'
-
